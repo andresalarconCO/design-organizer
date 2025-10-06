@@ -28,10 +28,10 @@
   resolved "https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@figma/plugin-typings@^1.50.0":
-  version "1.57.1"
-  resolved "https://registry.npmjs.org/@figma/plugin-typings/-/plugin-typings-1.57.1.tgz"
-  integrity sha512-kwiuApuqgkIPbFKey459VspenqXlBcBoMTnTZdQ/Hk2N71BTOZ0cM5Xq3zbPW/bEQOYtGDpweWxcXYHLo19HxQ==
+"@figma/plugin-typings@^1.117.1":
+  version "1.117.1"
+  resolved "https://registry.npmjs.org/@figma/plugin-typings/-/plugin-typings-1.117.1.tgz"
+  integrity sha512-YrPuZhXDH6naMxQrdrf4+E6aSstkkvv7pVHl9VTeoqkFTGptqw9BbhMSb7jPnT9+elLsRdZVKvWMwcBlyB3OhQ==
 
 "@jridgewell/gen-mapping@^0.3.0":
   version "0.3.2"

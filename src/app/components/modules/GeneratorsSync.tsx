@@ -16,7 +16,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
         fontFamily: "Inter, system-ui, sans-serif",
       }}
     >
-      {/* Header */}
       <div
         style={{
           flexShrink: 0,
@@ -32,8 +31,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
           ← Back
         </Button>
       </div>
-
-      {/* Content */}
       <div
         style={{
           flex: 1,
@@ -44,7 +41,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
           gap: 20,
         }}
       >
-        {/* Intro */}
         <div
           style={{
             textAlign: "center",
@@ -73,7 +69,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
           </p>
         </div>
 
-        {/* Step 1 */}
         <section
           style={{
             background: "var(--figma-color-bg-secondary)",
@@ -151,7 +146,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
           </div>
         </section>
 
-        {/* Step 2 */}
         <section
           style={{
             background: "var(--figma-color-bg-secondary)",

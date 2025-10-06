@@ -40,7 +40,6 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* Header */}
       <div
         style={{
           flexShrink: 0,
@@ -72,8 +71,6 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
           ⟳ Refresh
         </Button>
       </div>
-
-      {/* Contenido */}
       <div
         style={{
           flex: 1,
@@ -117,7 +114,6 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
               e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
             }}
           >
-            {/* CABECERA de la tarjeta */}
             <div
               style={{
                 display: "flex",
@@ -165,7 +161,6 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
               </div>
             </div>
 
-            {/* Detalles tipográficos */}
             <div
               style={{
                 display: "grid",

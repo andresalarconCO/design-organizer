@@ -104,7 +104,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                 fontFamily: "Inter, sans-serif",
             }}
         >
-            {/* Header */}
             <div
                 style={{
                     flexShrink: 0,
@@ -124,7 +123,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                 </Button>
             </div>
 
-            {/* Results */}
             <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>
                 <Title>Accessibility Checker (WCAG 2.2)</Title>
                 <Description>
@@ -156,7 +154,7 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                 gap: 14,
                             }}
                         >
-                            {/* Color header */}
+
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 <div
                                     style={{
@@ -170,7 +168,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                 <strong style={{ fontSize: 14 }}>{hex}</strong>
                             </div>
 
-                            {/* --- Variations (Enhanced UI) --- */}
                             <div
                                 style={{
                                     marginTop: 10,
@@ -193,7 +190,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                     Variations
                                 </div>
 
-                                {/* Text on background combinations */}
                                 <div
                                     style={{
                                         display: "grid",
@@ -217,7 +213,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                     />
                                 </div>
 
-                                {/* Color as text on backgrounds */}
                                 <div
                                     style={{
                                         display: "grid",
@@ -241,7 +236,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                     />
                                 </div>
 
-                                {/* Gray variations */}
                                 <div
                                     style={{
                                         display: "grid",
@@ -265,7 +259,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                     />
                                 </div>
 
-                                {/* Background color vs gray text */}
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)" }}>
                                     <VariationCell
                                         title="Color / Gray Dark"
@@ -284,8 +277,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                 </div>
                             </div>
 
-
-                            {/* --- UI Contexts (con previews reales) --- */}
                             <div
                                 style={{
                                     marginTop: 12,
@@ -313,7 +304,7 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                         borderTop: "1px solid var(--figma-color-border)",
                                     }}
                                 >
-                                    {/* Icon on Light */}
+
                                     <div
                                         style={{
                                             background: "#FFF",
@@ -357,7 +348,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                         </span>
                                     </div>
 
-                                    {/* Icon on Dark */}
                                     <div
                                         style={{
                                             background: "#2E2E2E",
@@ -400,7 +390,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                         </span>
                                     </div>
 
-                                    {/* Input Border */}
                                     <div
                                         style={{
                                             background: "#F8F8F8",
@@ -438,7 +427,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                         </span>
                                     </div>
 
-                                    {/* Button Example */}
                                     <div
                                         style={{
                                             background: "var(--figma-color-bg)",
@@ -489,8 +477,6 @@ export const AccessibilityChecker = ({ onBack }: { onBack: () => void }) => {
                                 </div>
                             </div>
 
-
-                            {/* --- Summary --- */}
                             <div
                                 style={{
                                     background: summary.color + "22",

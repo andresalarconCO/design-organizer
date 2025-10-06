@@ -1,8 +1,10 @@
 {
   "name": "Design Organizer",
-  "id": "afoa-design-organizer",
+  "id": "1557138810445215742",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] }
 }

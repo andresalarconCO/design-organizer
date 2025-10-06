@@ -31,8 +31,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // --- Exportar todas ---
-  // --- Utilidad: optimizar usando canvas ---
   const optimizeImage = async (
     bytes: Uint8Array,
     quality: number
@@ -52,13 +50,11 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
 
         ctx.drawImage(img, 0, 0, img.width, img.height);
 
-        // Detectar si tiene transparencia
         const imageData = ctx.getImageData(0, 0, img.width, img.height);
         const hasTransparency = imageData.data.some(
           (value, index) => index % 4 === 3 && value < 255
         );
 
-        // Selección automática de formato
         const format = hasTransparency ? "image/png" : "image/jpeg";
         canvas.toBlob(
           (optimizedBlob) => {
@@ -77,7 +73,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
     });
   };
 
-  // --- Exportar todas ---
   const handleExportAll = async () => {
     if (!images.length) return;
     setLoading(true);
@@ -100,7 +95,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
     setLoading(false);
   };
 
-  // --- Export individual ---
   const handleExportSingle = async (img: { name: string; bytes: Uint8Array }) => {
     setLoading(true);
     const { blob, format } = await optimizeImage(img.bytes, quality);
@@ -134,7 +128,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* Header */}
       <div
         style={{
           flexShrink: 0,
@@ -154,7 +147,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
         </Button>
       </div>
 
-      {/* Content */}
       <div
         style={{
           flex: 1,
@@ -167,8 +159,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
       >
         <Title>Export Bulk Images</Title>
         <Description>Scan, optimize, and export all image fills from your selection.</Description>
-
-        {/* Quality Slider */}
         <div>
           <label style={{ fontSize: 12 }}>Optimization Quality: {quality}%</label>
           <input

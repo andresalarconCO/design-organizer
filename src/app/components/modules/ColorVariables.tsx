@@ -43,7 +43,6 @@ export const ColorVariables = ({
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* --- Header --- */}
       <div
         style={{
           display: "flex",
@@ -73,7 +72,6 @@ export const ColorVariables = ({
         </Button>
       </div>
 
-      {/* --- Contenido Scrollable --- */}
       <div
         style={{
           flex: 1,
@@ -112,7 +110,6 @@ export const ColorVariables = ({
               "var(--figma-color-bg-secondary)")
             }
           >
-            {/* Mini preview color */}
             <div
               style={{
                 width: 28,
@@ -125,7 +122,6 @@ export const ColorVariables = ({
               }}
             />
 
-            {/* Info */}
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600, fontSize: 13 }}>{c.value.toUpperCase()}</div>
               <div
@@ -138,19 +134,16 @@ export const ColorVariables = ({
               </div>
             </div>
 
-            {/* Tag */}
             <span style={tag(c.origin)}>{c.origin}</span>
           </div>
         ))}
       </div>
-      {/* --- Footer Global --- */}
       <Footer
       />
     </div>
   );
 };
 
-// --- TAG ESTILOS ---
 const tag = (type: string): React.CSSProperties => ({
   display: "inline-block",
   background:

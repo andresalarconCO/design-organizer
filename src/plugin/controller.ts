@@ -24,9 +24,6 @@ function initializeTheme() {
   }
 }
 
-// =====================================================
-// 🧠 Main Message Listener
-// =====================================================
 figma.ui.onmessage = async (msg) => {
   try {
     const { type, module } = msg;
@@ -58,9 +55,6 @@ figma.ui.onmessage = async (msg) => {
   }
 };
 
-// =====================================================
-// 🔍 Scan Modules
-// =====================================================
 async function handleScan(module: string) {
   const selection = figma.currentPage.selection;
   if (!selection.length) {
@@ -85,19 +79,14 @@ async function handleScan(module: string) {
 // =====================================================
 // 🎯 Focus Functions
 // =====================================================
-// =====================================================
-// 🎯 Focus Functions
-// =====================================================
 function focusNode(id: string): void {
   const node = figma.getNodeById(id);
 
-  // Verificar existencia
   if (!node) {
     figma.notify("⚠️ Node not found.");
     return;
   }
 
-  // Verificar que sea un SceneNode (evita PageNode, etc.)
   if ("visible" in node && "locked" in node) {
     const sceneNode = node as SceneNode;
 
@@ -108,7 +97,6 @@ function focusNode(id: string): void {
     figma.notify("⚠️ This node cannot be focused.");
   }
 }
-
 
 async function focusGroup({ fontFamily, fontSize }: any) {
   const matched: SceneNode[] = [];
@@ -166,9 +154,6 @@ async function focusColor({ colorHex, opacity }: any) {
   } else figma.notify(`No elements found for ${colorHex}`);
 }
 
-// =====================================================
-// 🧾 Scanners
-// =====================================================
 function scanColors(selection: readonly SceneNode[]) {
   const colors: any[] = [];
 
@@ -228,9 +213,6 @@ function scanTextStyles(selection: readonly SceneNode[]) {
   return texts;
 }
 
-// =====================================================
-// 🧰 Utilities
-// =====================================================
 function getStyleOrigin(styleId: string) {
   if (!styleId) return "Unlinked";
   const style = figma.getStyleById(styleId);
@@ -246,72 +228,115 @@ function rgbToHex({ r, g, b }: RGB): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-// =====================================================
-// 🎨 Create Styles
-// =====================================================
 async function createColorStyles() {
   const selection = figma.currentPage.selection;
-  if (!selection.length) return figma.notify("Select at least one shape.");
+  if (!selection.length) return figma.notify("⚠️ Select at least one shape.");
 
   const created: string[] = [];
 
-  const traverse = (node: SceneNode) => {
-    if (!("fills" in node)) return;
-    const fills = node.fills as Paint[];
-    fills.forEach((fill) => {
-      if (fill.type !== "SOLID") return;
-      const color = fill.color;
-      const opacity = fill.opacity ?? 1;
-      const name = node.name?.trim() || rgbToHex(color).toUpperCase();
-      if (figma.getLocalPaintStyles().some((s) => s.name === name)) return;
+  try {
+    const localPaintStyles = await figma.getLocalPaintStylesAsync();
 
-      const style = figma.createPaintStyle();
-      style.name = name;
-      style.paints = [{ type: "SOLID", color, opacity }];
-      created.push(name);
-    });
+    // --- Función recursiva ---
+    const traverse = (node: SceneNode) => {
+      if (node.type === "TEXT") return;
 
-    if ("children" in node) node.children.forEach(traverse);
-  };
+      if ("fills" in node && Array.isArray(node.fills)) {
+        const fills = node.fills as Paint[];
 
-  selection.forEach(traverse);
-  figma.notify(created.length ? `🎨 Created ${created.length} color styles` : "No valid colors found.");
+        for (const fill of fills) {
+          if (fill.type !== "SOLID") continue; // ignorar gradientes o imágenes
+
+          const color = fill.color;
+          const opacity = fill.opacity ?? 1;
+          const name = node.name?.trim() || rgbToHex(color).toUpperCase();
+
+          // Evitar duplicados
+          if (localPaintStyles.some((s) => s.name === name)) continue;
+
+          const style = figma.createPaintStyle();
+          style.name = name;
+          style.paints = [{ type: "SOLID", color, opacity }];
+          created.push(name);
+        }
+      }
+      
+      if ("children" in node) node.children.forEach(traverse);
+    };
+
+    selection.forEach(traverse);
+
+    // Mensaje final
+    figma.notify(
+      created.length
+        ? `🎨 Created ${created.length} new color styles.`
+        : "No valid non-text layers found."
+    );
+  } catch (err) {
+    console.error("❌ Error creating color styles:", err);
+    figma.notify("❌ Failed to create color styles. Check console for details.");
+  }
 }
 
 async function createTextStyles() {
-  const selection = figma.currentPage.selection.filter((n) => n.type === "TEXT") as TextNode[];
+  const selection = figma.currentPage.selection.filter(
+    (n) => n.type === "TEXT"
+  ) as TextNode[];
+
   if (!selection.length) return figma.notify("⚠️ You must select text layers.");
 
   const created: string[] = [];
 
-  for (const node of selection) {
-    const fontName = node.fontName !== figma.mixed ? (node.fontName as FontName) : { family: "Inter", style: "Regular" };
-    await figma.loadFontAsync(fontName);
+  try {
+    // --- Obtener estilos locales actuales ---
+    const localTextStyles = await figma.getLocalTextStylesAsync();
 
-    const fontSize = node.fontSize !== figma.mixed ? node.fontSize : 16;
-    const styleName = node.name?.trim() || `${fontName.family}/${fontSize}px`;
+    for (const node of selection) {
+      const fontName =
+        node.fontName !== figma.mixed
+          ? (node.fontName as FontName)
+          : { family: "Inter", style: "Regular" };
 
-    if (figma.getLocalTextStyles().some((s) => s.name === styleName)) continue;
+      await figma.loadFontAsync(fontName);
 
-    const style = figma.createTextStyle();
-    style.name = styleName;
-    style.fontName = fontName;
-    style.fontSize = fontSize;
-    if (node.lineHeight !== figma.mixed) style.lineHeight = node.lineHeight as LineHeight;
-    if (node.letterSpacing !== figma.mixed) style.letterSpacing = node.letterSpacing as LetterSpacing;
-    if (node.textDecoration !== figma.mixed) style.textDecoration = node.textDecoration;
+      const fontSize =
+        node.fontSize !== figma.mixed ? node.fontSize : 16;
+      const styleName = node.name?.trim() || `${fontName.family}/${fontSize}px`;
 
-    created.push(styleName);
+      // --- Evitar duplicados ---
+      if (localTextStyles.some((s) => s.name === styleName)) continue;
+
+      // --- Crear nuevo estilo ---
+      const style = figma.createTextStyle();
+      style.name = styleName;
+      style.fontName = fontName;
+      style.fontSize = fontSize;
+
+      if (node.lineHeight !== figma.mixed)
+        style.lineHeight = node.lineHeight as LineHeight;
+
+      if (node.letterSpacing !== figma.mixed)
+        style.letterSpacing = node.letterSpacing as LetterSpacing;
+
+      if (node.textDecoration !== figma.mixed)
+        style.textDecoration = node.textDecoration;
+
+      created.push(styleName);
+    }
+
+    figma.notify(
+      created.length
+        ? `✨ Created ${created.length} new text styles.`
+        : "No valid text layers found."
+    );
+  } catch (err) {
+    console.error("❌ Error creating text styles:", err);
+    figma.notify("❌ Failed to create text styles. Check console for details.");
   }
-
-  figma.notify(created.length ? `✨ Created ${created.length} text styles.` : "No valid text layers found.");
 }
 
-// =====================================================
-// 🔁 Sync Styles
-// =====================================================
 async function syncColorStyles() {
-  const colorStyles = figma.getLocalPaintStyles();
+  const colorStyles = await figma.getLocalPaintStylesAsync();
   if (!colorStyles.length) return figma.notify("⚠️ No color styles found to sync.");
 
   const nodes = figma.currentPage.findAll((n) => "fills" in n || "strokes" in n) as SceneNode[];
@@ -354,7 +379,7 @@ async function syncColorStyles() {
 
 async function syncTextStyles() {
   try {
-    const textStyles = figma.getLocalTextStyles();
+    const textStyles = await figma.getLocalTextStylesAsync();
     if (!textStyles.length) return figma.notify("⚠️ No text styles found to sync.");
 
     const textNodes = figma.currentPage.findAll((n) => n.type === "TEXT") as TextNode[];
@@ -388,9 +413,6 @@ async function syncTextStyles() {
   }
 }
 
-// =====================================================
-// 🧹 Reset Instances
-// =====================================================
 async function resetAllInstances() {
   const nodes = figma.currentPage.findAll((n) => {
     const hasText = n.type === "TEXT" && !!(n as TextNode).textStyleId;
@@ -410,9 +432,6 @@ async function resetAllInstances() {
   figma.notify(count ? `🧹 Reset ${count} style instances.` : "No styles to reset.");
 }
 
-// =====================================================
-// 🪄 Auto-create Styles
-// =====================================================
 async function createLocalStyleFromSelection() {
   const selection = figma.currentPage.selection;
   if (!selection.length) return figma.notify("Select an element.");
@@ -424,9 +443,6 @@ async function createLocalStyleFromSelection() {
 
   figma.notify("✅ Local styles created successfully.");
 }
-// =====================================================
-// 🖼️ Export Bulk Images — Optimized + Unique + Previews
-// =====================================================
 
 async function scanImages(options?: { scope?: "selection" | "page" }) {
   const scope = options?.scope || "selection";
@@ -482,9 +498,6 @@ async function scanImages(options?: { scope?: "selection" | "page" }) {
   });
 }
 
-// =====================================================
-// 🖼️ Export all images (no cutting, true compression)
-// =====================================================
 async function exportBulkImages(options?: { quality?: number; asZip?: boolean }) {
   const selection = figma.currentPage.selection.length
     ? figma.currentPage.selection
@@ -540,7 +553,6 @@ async function exportBulkImages(options?: { quality?: number; asZip?: boolean })
   figma.notify(`🖼️ ${imagesArray.length} unique images exported.`);
 }
 
-// ============= WCAG 2.2 Accessibility Analyzer =============
 
 function luminance(r: number, g: number, b: number): number {
   const a = [r, g, b].map((v) =>
@@ -555,10 +567,6 @@ function contrastRatio(rgb1: RGB, rgb2: RGB): number {
   return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
 }
 
-// =====================================================
-// ♿ Enhanced Accessibility Analyzer (8 Variations WCAG 2.2)
-// =====================================================
-
 function checkAccessibility() {
   const selection = figma.currentPage.selection;
   const results: any[] = [];
@@ -569,7 +577,6 @@ function checkAccessibility() {
     return;
   }
 
-  // --- Helpers ---
   const luminance = (c: number) =>
     c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 
@@ -585,8 +592,7 @@ function checkAccessibility() {
     const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
     return Math.round(ratio * 100) / 100;
   };
-
-  // --- Colores de referencia ---
+  
   const white = { r: 255, g: 255, b: 255 };
   const black = { r: 0, g: 0, b: 0 };
   const grayLight = { r: 224, g: 224, b: 224 }; // #E0E0E0
@@ -594,7 +600,6 @@ function checkAccessibility() {
   const textGrayLight = { r: 245, g: 245, b: 245 }; // #F5F5F5
   const textGrayDark = { r: 51, g: 51, b: 51 };     // #333333
 
-  // --- Umbrales WCAG ---
   const AA_THRESHOLD = 4.5;
   const AAA_THRESHOLD = 7;
 
@@ -609,19 +614,16 @@ function checkAccessibility() {
           b: Math.round(color.b * 255),
         };
 
-        // --- Cálculos base ---
         const contrastWhite = getContrast(rgb, white);
         const contrastBlack = getContrast(rgb, black);
         const contrastOnWhite = getContrast(white, rgb);
         const contrastOnBlack = getContrast(black, rgb);
 
-        // --- Nuevas variaciones ---
         const contrastOnGrayLight = getContrast(grayLight, rgb);
         const contrastOnGrayDark = getContrast(grayDark, rgb);
         const contrastGrayDarkText = getContrast(rgb, textGrayDark);
         const contrastGrayLightText = getContrast(rgb, textGrayLight);
 
-        // --- Evaluaciones ---
         const passesWhiteAA = contrastWhite >= AA_THRESHOLD;
         const passesBlackAA = contrastBlack >= AA_THRESHOLD;
         const passesWhiteAAA = contrastWhite >= AAA_THRESHOLD;
@@ -637,7 +639,6 @@ function checkAccessibility() {
 
         const uiContexts = evaluateUIContexts(rgb);
 
-        // --- Resultados finales ---
         results.push({
           name: node.name,
           color,
@@ -661,16 +662,12 @@ function checkAccessibility() {
           passesGrayLightText,
           ...uiContexts,
         });
-
-
-
       }
     }
   }
 
   figma.ui.postMessage({ type: "accessibility-result", results });
 }
-
 
 function evaluateUIContexts(rgb: { r: number; g: number; b: number }) {
   const white = { r: 255, g: 255, b: 255 };

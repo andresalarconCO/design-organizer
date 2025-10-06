@@ -13,7 +13,6 @@ export default function App() {
 
   useFigmaTheme();
 
-  // --- Escucha los mensajes desde controller.ts ---
   useEffect(() => {
     window.onmessage = (event) => {
       const { type, module, data, error } = event.data.pluginMessage || {};
@@ -27,13 +26,11 @@ export default function App() {
     };
   }, []);
 
-  // --- Manejo del botón "Back" ---
   const handleBack = () => {
     setActiveModule(null);
     setScanResult([]);
   };
 
-  // --- Render dinámico según módulo activo ---
   return (
     <div id="app-container">
       {activeModule === "colors" && (

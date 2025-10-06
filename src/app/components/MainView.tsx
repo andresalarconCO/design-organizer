@@ -77,7 +77,7 @@ export const MainView = ({
                 />
                 {/* Título y descripción */}
                 <Title level={1}>Design Organizer</Title>
-                <Description>Organize your design tokens with ease.</Description>
+                <Description>Organize your design with ease.</Description>
 
                 {/* --- Sección principal --- */}
                 <div
