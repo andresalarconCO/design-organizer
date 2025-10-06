@@ -18,12 +18,12 @@ export const Title: React.FC<TitleProps> = ({ level = 2, children, style }) => {
       level === 1
         ? 20
         : level === 2
-        ? 16
-        : level === 3
-        ? 14
-        : level === 4
-        ? 13
-        : 12,
+          ? 16
+          : level === 3
+            ? 14
+            : level === 4
+              ? 13
+              : 12,
     lineHeight: "1.4em",
   };
 

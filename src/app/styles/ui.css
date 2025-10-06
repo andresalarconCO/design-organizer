@@ -52,7 +52,8 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* evita scroll global innecesario */
+  overflow: hidden;
+  /* evita scroll global innecesario */
   background: var(--figma-color-bg);
   color: var(--figma-color-text);
   font-family: "Inter", sans-serif !important;
@@ -73,7 +74,8 @@ body,
 🖱️ Scrollbar Styling (Global)
 ===================================================== */
 * {
-  scrollbar-width: thin; /* Firefox */
+  scrollbar-width: thin;
+  /* Firefox */
   scrollbar-color: var(--figma-color-border) transparent;
 }
 

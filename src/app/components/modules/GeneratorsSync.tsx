@@ -217,7 +217,7 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
                 )
               }
             >
-                Sync color styles
+              Sync color styles
             </Button>
             <Button
               variant="secondary"

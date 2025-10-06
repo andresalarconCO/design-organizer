@@ -108,8 +108,8 @@ export const ColorVariables = ({
               (e.currentTarget.style.background = "var(--figma-color-bg-hover)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.background =
-                "var(--figma-color-bg-secondary)")
+            (e.currentTarget.style.background =
+              "var(--figma-color-bg-secondary)")
             }
           >
             {/* Mini preview color */}
@@ -143,9 +143,9 @@ export const ColorVariables = ({
           </div>
         ))}
       </div>
-            {/* --- Footer Global --- */}
-            <Footer
-            />
+      {/* --- Footer Global --- */}
+      <Footer
+      />
     </div>
   );
 };
@@ -157,8 +157,8 @@ const tag = (type: string): React.CSSProperties => ({
     type === "Team"
       ? "#A05EF8"
       : type === "Local"
-      ? "#4CAF50"
-      : "#F44336",
+        ? "#4CAF50"
+        : "#F44336",
   color: "white",
   fontSize: 10,
   fontWeight: 600,
