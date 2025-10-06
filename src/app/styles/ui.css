@@ -1,0 +1,102 @@
+/* =====================================================
+🎨 Design Organizer – Global Theme & Scroll Styles
+===================================================== */
+
+/* =====================================================
+🌞 Light Theme
+===================================================== */
+:root[data-theme='light'] {
+  /* Base Colors */
+  --figma-color-bg: #ffffff;
+  --figma-color-bg-secondary: #f7f7f7;
+  --figma-color-bg-hover: #ebebeb;
+
+  /* Text */
+  --figma-color-text: #111111;
+  --figma-color-text-secondary: #555555;
+
+  /* Border & Dividers */
+  --figma-color-border: #dddddd;
+
+  /* Brand Accent */
+  --plugin-color-primary: #7958FF;
+}
+
+/* =====================================================
+🌚 Dark Theme
+===================================================== */
+:root[data-theme='dark'] {
+  /* Base Colors */
+  --figma-color-bg: #1e1e1e;
+  --figma-color-bg-secondary: #2a2a2a;
+  --figma-color-bg-hover: #3a3a3a;
+
+  /* Text */
+  --figma-color-text: #f5f5f5;
+  --figma-color-text-secondary: #aaaaaa;
+
+  /* Border & Dividers */
+  --figma-color-border: #444444;
+
+  /* Brand Accent */
+  --plugin-color-primary: #7b61ff;
+}
+
+/* =====================================================
+🧩 General Layout
+===================================================== */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* evita scroll global innecesario */
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  font-family: "Inter", sans-serif !important;
+  scroll-behavior: smooth;
+}
+
+/* Contenedor principal */
+.app-container {
+  width: 100%;
+  height: 100%;
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  font-family: "Inter", sans-serif;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* =====================================================
+🖱️ Scrollbar Styling (Global)
+===================================================== */
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--figma-color-border) transparent;
+}
+
+/* WebKit Scrollbars (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--figma-color-border);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--figma-color-bg-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
