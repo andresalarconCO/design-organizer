@@ -1,5 +1,65 @@
-node_modules
-dist
-settings.json
+# Dependencias y builds
+node_modules/
+dist/
+build/
+.out/
+.cache/
+.tmp/
+
+# Configuración local
+.vscode/
+.idea/
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Logs y reportes
 yarn-error.log
-.vscode
+npm-debug.log*
+pnpm-debug.log*
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Configs y overrides locales
+settings.json
+*.local.json
+*.config.local.js
+
+# Sistemas de OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Archivos de test / coverage
+coverage/
+*.lcov
+jest-html-reporters-*
+
+# Archivos de lock (opcional si usas uno específico)
+package-lock.json
+pnpm-lock.yaml
+# (deja solo uno de estos si es tu gestor principal)
+# yarn.lock
+
+# Documentación generada
+docs-dist/
+storybook-static/
+typedoc/
+
+# Otros
+*.bak
+*.old
+*.swp
+*.tmp
+*.orig
