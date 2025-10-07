@@ -127,7 +127,7 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
+                {/* <button
                   style={{
                     background: "#007AFF",
                     color: "white",
@@ -156,7 +156,7 @@ export const TextStyles = ({ onBack, data }: { onBack: () => void; data: any[] }
                   }}
                 >
                   🔍 Focus
-                </button>
+                </button> */}
                 <Tag type={t.origin as "Local" | "Team" | "Unlinked"} />
               </div>
             </div>

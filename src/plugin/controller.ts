@@ -1,12 +1,5 @@
-// =====================================================
-// 🧩 Design Organizer – controller.ts (Refactor)
-// =====================================================
-
 figma.showUI(__html__, { width: 420, height: 620, themeColors: true });
 
-// =====================================================
-// 🎨 Theme Handling
-// =====================================================
 initializeTheme();
 
 function initializeTheme() {
@@ -64,7 +57,10 @@ async function handleScan(module: string) {
     });
   }
 
-  const scanners: Record<string, (nodes: readonly SceneNode[]) => any[]> = {
+  const scanners: Record<
+    string,
+    (nodes: readonly SceneNode[]) => any[] | Promise<any[]>
+  > = {
     colors: scanColors,
     text: scanTextStyles,
   };
@@ -72,13 +68,10 @@ async function handleScan(module: string) {
   const scanFn = scanners[module];
   if (!scanFn) return;
 
-  const data = scanFn(selection);
+  const data = await scanFn(selection);
   figma.ui.postMessage({ type: "scan-result", module, data });
 }
 
-// =====================================================
-// 🎯 Focus Functions
-// =====================================================
 function focusNode(id: string): void {
   const node = figma.getNodeById(id);
 
@@ -154,70 +147,136 @@ async function focusColor({ colorHex, opacity }: any) {
   } else figma.notify(`No elements found for ${colorHex}`);
 }
 
-function scanColors(selection: readonly SceneNode[]) {
+async function scanColors(selection: readonly SceneNode[]) {
   const colors: any[] = [];
 
-  const traverse = (node: SceneNode) => {
-    const processPaints = (paints: Paint[], key: "fillStyleId" | "strokeStyleId") => {
-      paints.forEach((paint) => {
-        if (paint.type === "SOLID") {
-          const styleId = (node as any)[key] as string;
-          const style = styleId ? figma.getStyleById(styleId) : null;
-          const hex = rgbToHex(paint.color);
-          const opacity = Math.round((paint.opacity ?? 1) * 100);
+  const traverse = async (node: SceneNode) => {
+    const processPaints = async (paints: Paint[], key: "fillStyleId" | "strokeStyleId") => {
+      for (const paint of paints) {
+        if (paint.type !== "SOLID") continue;
 
-          colors.push({
-            id: node.id,
-            name: style?.name || "Unlinked color",
-            value: hex,
-            opacity,
-            origin: getStyleOrigin(styleId),
-          });
+        const styleId = (node as any)[key] as string;
+        let styleName = "Unlinked color";
+        let origin = "Unlinked";
+
+        try {
+          if (styleId) {
+            const style = await figma.getStyleByIdAsync(styleId);
+            if (style) {
+              styleName = style.name;
+              origin = style.remote ? "Team" : "Local";
+            }
+          }
+        } catch {
+          origin = "Restricted";
         }
-      });
+
+        const hex = rgbToHex(paint.color);
+        const opacity = Math.round((paint.opacity ?? 1) * 100);
+
+        colors.push({
+          id: node.id,
+          name: styleName,
+          value: hex,
+          opacity,
+          origin,
+        });
+      }
     };
 
-    if ("fills" in node && Array.isArray(node.fills)) processPaints(node.fills, "fillStyleId");
-    if ("strokes" in node && Array.isArray(node.strokes)) processPaints(node.strokes, "strokeStyleId");
+    if ("fills" in node && Array.isArray(node.fills))
+      await processPaints(node.fills, "fillStyleId");
+    if ("strokes" in node && Array.isArray(node.strokes))
+      await processPaints(node.strokes, "strokeStyleId");
 
-    if ("children" in node) node.children.forEach(traverse);
+    if ("children" in node && Array.isArray(node.children))
+      for (const child of node.children)
+        await traverse(child as SceneNode);
   };
 
-  selection.forEach(traverse);
+  for (const n of selection) await traverse(n);
   return colors;
 }
 
-function scanTextStyles(selection: readonly SceneNode[]) {
+
+async function scanTextStyles(selection: readonly SceneNode[]) {
   const texts: any[] = [];
 
-  const traverse = (node: SceneNode) => {
+  const traverse = async (node: SceneNode) => {
     if (node.type === "TEXT") {
-      const styleId = node.textStyleId as string;
-      const style = styleId ? figma.getStyleById(styleId) : null;
+      let styleName = "Unlinked text style";
+      let origin = "Unlinked";
+      let fontName: FontName | string = "Mixed";
+      let fontSize: number | string = "Mixed";
+      let lineHeight: LineHeight | string = "Mixed";
+      let letterSpacing: LetterSpacing | string = "Mixed";
+      let paragraphSpacing: number | string = "Mixed";
 
+      try {
+        // --- Asegurar propiedades legibles ---
+        if (node.fontName !== figma.mixed) fontName = node.fontName as FontName;
+        if (node.fontSize !== figma.mixed) fontSize = node.fontSize as number;
+        if (node.lineHeight !== figma.mixed)
+          lineHeight = node.lineHeight as LineHeight;
+        if (node.letterSpacing !== figma.mixed)
+          letterSpacing = node.letterSpacing as LetterSpacing;
+        if (typeof node.paragraphSpacing === "number")
+          paragraphSpacing = node.paragraphSpacing;
+
+
+        // --- Obtener información de estilo ---
+        const styleId = node.textStyleId as string;
+        if (styleId) {
+          try {
+            const style = await figma.getStyleByIdAsync(styleId);
+            if (style) {
+              styleName = style.name;
+              origin = style.remote ? "Team" : "Local";
+            }
+          } catch {
+            styleName = "Inaccessible text style";
+            origin = "Restricted";
+          }
+        }
+      } catch (err) {
+        console.warn(`⚠️ Could not read text properties for node ${node.name}`, err);
+      }
+
+      // --- Registrar resultado ---
       texts.push({
         id: node.id,
-        name: style?.name || "Unlinked text style",
-        fontName: (node as TextNode).fontName,
-        fontSize: node.fontSize,
-        lineHeight: node.lineHeight,
-        letterSpacing: node.letterSpacing,
-        paragraphSpacing: node.paragraphSpacing,
-        origin: getStyleOrigin(styleId),
+        name: styleName,
+        fontName,
+        fontSize,
+        lineHeight,
+        letterSpacing,
+        paragraphSpacing,
+        origin,
       });
     }
-    if ("children" in node) node.children.forEach(traverse);
+
+    // --- Recorrer hijos ---
+    if ("children" in node && Array.isArray(node.children)) {
+      for (const child of node.children) {
+        await traverse(child as SceneNode);
+      }
+    }
   };
 
-  selection.forEach(traverse);
+  for (const n of selection) await traverse(n);
   return texts;
 }
 
-function getStyleOrigin(styleId: string) {
+
+async function getStyleOrigin(styleId: string): Promise<string> {
   if (!styleId) return "Unlinked";
-  const style = figma.getStyleById(styleId);
-  if (!style) return "Unlinked";
-  return style.remote ? "Team" : "Local";
+  try {
+    const style = await figma.getStyleByIdAsync(styleId);
+    if (!style) return "Unlinked";
+    return style.remote ? "Team" : "Local";
+  } catch {
+    return "Unlinked";
+  }
 }
 
 function rgbToHex({ r, g, b }: RGB): string {
@@ -260,7 +319,7 @@ async function createColorStyles() {
           created.push(name);
         }
       }
-      
+
       if ("children" in node) node.children.forEach(traverse);
     };
 
@@ -337,81 +396,195 @@ async function createTextStyles() {
 
 async function syncColorStyles() {
   const colorStyles = await figma.getLocalPaintStylesAsync();
-  if (!colorStyles.length) return figma.notify("⚠️ No color styles found to sync.");
+  if (!colorStyles.length) {
+    figma.notify("⚠️ No color styles found to sync.");
+    return;
+  }
 
-  const nodes = figma.currentPage.findAll((n) => "fills" in n || "strokes" in n) as SceneNode[];
+  const nodes = figma.currentPage.findAll(
+    (n) => "fills" in n || "strokes" in n
+  ) as SceneNode[];
+
+  if (!nodes.length) {
+    figma.notify("⚠️ No nodes with fills or strokes found.");
+    return;
+  }
+
   const tolerance = 0.015;
-  let linkedCount = 0;
+  const opacityTolerance = 0.02;
+
+  const styleIndex: { id: string; r: number; g: number; b: number; o: number }[] = [];
+  for (const s of colorStyles) {
+    const p = s.paints[0];
+    if (!p || p.type !== "SOLID") continue;
+    styleIndex.push({
+      id: s.id,
+      r: p.color.r,
+      g: p.color.g,
+      b: p.color.b,
+      o: p.opacity ?? 1,
+    });
+  }
 
   const colorsAreClose = (c1: RGB, c2: RGB) =>
     Math.abs(c1.r - c2.r) < tolerance &&
     Math.abs(c1.g - c2.g) < tolerance &&
     Math.abs(c1.b - c2.b) < tolerance;
 
-  for (const node of nodes) {
-    const syncPaints = (paints: Paint[], key: "fillStyleId" | "strokeStyleId") => {
-      paints.forEach((paint) => {
-        if (paint.type !== "SOLID") return;
-        const match = colorStyles.find((s) => {
-          const stylePaint = s.paints[0];
-          if (!stylePaint || stylePaint.type !== "SOLID") return false;
-          const sameColor = colorsAreClose(stylePaint.color, paint.color);
-          const sameOpacity = Math.abs((stylePaint.opacity ?? 1) - (paint.opacity ?? 1)) < 0.02;
-          return sameColor && sameOpacity;
-        });
-        if (match) {
-          (node as any)[key] = match.id;
-          linkedCount++;
+  let linkedCount = 0;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+
+    // Evitar nodos incompatibles
+    if (
+      !node ||
+      node.removed ||
+      node.type === "INSTANCE" ||
+      node.type === "COMPONENT" ||
+      node.type === "VECTOR" ||
+      node.type === "BOOLEAN_OPERATION" ||
+      node.type === "GROUP"
+    ) continue;
+
+    const processPaints = async (
+      paints: Paint[],
+      styleIdProp: "fillStyleId" | "strokeStyleId",
+      setter: (id: string) => Promise<void>
+    ) => {
+      const currentId = (node as any)[styleIdProp];
+      if (currentId && typeof currentId === "string" && currentId.length > 0) return; // 🔒 Ya sincronizado
+
+      for (const paint of paints) {
+        if (paint.type !== "SOLID") continue;
+        const opacity = paint.opacity ?? 1;
+        for (const s of styleIndex) {
+          if (
+            colorsAreClose(s, paint.color) &&
+            Math.abs(s.o - opacity) < opacityTolerance
+          ) {
+            try {
+              await setter(s.id);
+              linkedCount++;
+              return;
+            } catch {
+              return;
+            }
+          }
         }
-      });
+      }
     };
 
-    if ("fills" in node) syncPaints(node.fills as Paint[], "fillStyleId");
-    if ("strokes" in node) syncPaints(node.strokes as Paint[], "strokeStyleId");
+    try {
+      if ("fills" in node && Array.isArray(node.fills))
+        await processPaints(node.fills as Paint[], "fillStyleId", async (id) =>
+          (node as any).setFillStyleIdAsync(id)
+        );
+
+      if ("strokes" in node && Array.isArray(node.strokes))
+        await processPaints(node.strokes as Paint[], "strokeStyleId", async (id) =>
+          (node as any).setStrokeStyleIdAsync(id)
+        );
+    } catch {
+      continue;
+    }
+
+    if (i % 400 === 0) await new Promise((r) => setTimeout(r, 5));
   }
 
   figma.notify(
     linkedCount
-      ? `🎨 Synced ${linkedCount} layers by color tolerance.`
-      : "No color matches found."
+      ? `🎨 Synced ${linkedCount} new color links.`
+      : "✅ All color layers already synced."
   );
+}
+
+function isMixed(value: unknown): value is typeof figma.mixed {
+  return value === figma.mixed;
+}
+
+function getLineHeightValue(lh: LineHeight | typeof figma.mixed): number | null {
+  if (isMixed(lh)) return null;
+  if (typeof lh !== "object" || lh === null) return null;
+  if (lh.unit === "AUTO" || typeof lh.value !== "number") return null;
+  return Math.round(lh.value);
 }
 
 async function syncTextStyles() {
   try {
     const textStyles = await figma.getLocalTextStylesAsync();
-    if (!textStyles.length) return figma.notify("⚠️ No text styles found to sync.");
+    if (!textStyles.length) {
+      figma.notify("⚠️ No local text styles found to sync.");
+      return;
+    }
 
-    const textNodes = figma.currentPage.findAll((n) => n.type === "TEXT") as TextNode[];
-    let synced = 0;
+    const textNodes = figma.currentPage.findAll(
+      (n) => n.type === "TEXT"
+    ) as TextNode[];
 
+    if (!textNodes.length) {
+      figma.notify("⚠️ No text layers found on this page.");
+      return;
+    }
+
+    // Indexar estilos existentes
+    const styleCache = new Map<string, string>();
+    for (const s of textStyles) {
+      const font = s.fontName as FontName;
+      const size = Math.round(s.fontSize as number);
+      const lh = getLineHeightValue(s.lineHeight);
+      const key = `${font.family}-${font.style}-${size}-${lh ?? "auto"}`;
+      styleCache.set(key, s.id);
+    }
+
+    // Preload de fuentes únicas
+    const fontsToLoad = new Set<string>();
     for (const node of textNodes) {
-      if (node.hasMissingFont || node.fontName === figma.mixed) continue;
-      const nodeFont = node.fontName as FontName;
-      const nodeSize = Math.round(node.fontSize as number);
-
-      const match = textStyles.find((s) => {
-        const font = s.fontName as FontName;
-        const size = Math.round(s.fontSize as number);
-        return font.family === nodeFont.family && font.style === nodeFont.style && size === nodeSize;
-      });
-
-      if (match) {
-        node.textStyleId = match.id;
-        synced++;
+      if (node.fontName !== figma.mixed && !node.hasMissingFont) {
+        const f = node.fontName as FontName;
+        fontsToLoad.add(`${f.family}::${f.style}`);
       }
     }
+    await Promise.all(
+      Array.from(fontsToLoad).map(async (key) => {
+        const [family, style] = key.split("::");
+        await figma.loadFontAsync({ family, style });
+      })
+    );
+
+    let synced = 0;
+
+    await Promise.all(
+      textNodes.map(async (node) => {
+        try {
+          if (node.hasMissingFont || node.fontName === figma.mixed) return;
+          if (node.textStyleId) return; // 🔒 Ya sincronizado
+
+          const font = node.fontName as FontName;
+          const size = Math.round(node.fontSize as number);
+          const lh = getLineHeightValue(node.lineHeight);
+          const key = `${font.family}-${font.style}-${size}-${lh ?? "auto"}`;
+
+          const matchId = styleCache.get(key);
+          if (matchId) {
+            await node.setTextStyleIdAsync(matchId);
+            synced++;
+          }
+        } catch { /* silencioso */ }
+      })
+    );
 
     figma.notify(
       synced
-        ? `📝 Synced ${synced} text layers to local styles.`
-        : "No matching text styles found."
+        ? `📝 Synced ${synced} new text links.`
+        : "✅ All text layers already synced."
     );
   } catch (err) {
     console.error("❌ Error syncing text styles:", err);
-    figma.notify("❌ Failed to sync text styles.");
+    figma.notify("❌ Failed to sync text styles. Check console for details.");
   }
 }
+
 
 async function resetAllInstances() {
   const nodes = figma.currentPage.findAll((n) => {
@@ -421,16 +594,42 @@ async function resetAllInstances() {
     return hasText || hasFill || hasStroke;
   });
 
+  if (!nodes.length) {
+    figma.notify("No styles to reset.");
+    return;
+  }
+
   let count = 0;
-  for (const node of nodes) {
-    if (node.type === "TEXT") (node as TextNode).textStyleId = "";
-    if ("fillStyleId" in node) (node as any).fillStyleId = "";
-    if ("strokeStyleId" in node) (node as any).strokeStyleId = "";
-    count++;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+
+    if (!node || node.removed || node.type === "INSTANCE" || node.type === "COMPONENT") continue;
+
+    try {
+      if (node.type === "TEXT" && (node as TextNode).textStyleId) {
+        await (node as TextNode).setTextStyleIdAsync("");
+        count++;
+      }
+
+      if ("fillStyleId" in node && (node as any).fillStyleId) {
+        await (node as any).setFillStyleIdAsync("");
+        count++;
+      }
+
+      if ("strokeStyleId" in node && (node as any).strokeStyleId) {
+        await (node as any).setStrokeStyleIdAsync("");
+        count++;
+      }
+    } catch {
+      continue;
+    }
+    if (i % 400 === 0) await new Promise((r) => setTimeout(r, 5));
   }
 
   figma.notify(count ? `🧹 Reset ${count} style instances.` : "No styles to reset.");
 }
+
 
 async function createLocalStyleFromSelection() {
   const selection = figma.currentPage.selection;
@@ -482,7 +681,6 @@ async function scanImages(options?: { scope?: "selection" | "page" }) {
 
   targetNodes.forEach(traverse);
 
-  // --- Generar previews ---
   const previewData = await Promise.all(
     images.map(async (img) => {
       const image = figma.getImageByHash(img.imageHash);
@@ -592,7 +790,7 @@ function checkAccessibility() {
     const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
     return Math.round(ratio * 100) / 100;
   };
-  
+
   const white = { r: 255, g: 255, b: 255 };
   const black = { r: 0, g: 0, b: 0 };
   const grayLight = { r: 224, g: 224, b: 224 }; // #E0E0E0
