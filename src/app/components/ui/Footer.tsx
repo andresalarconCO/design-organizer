@@ -2,7 +2,7 @@ import React from "react";
 
 export const Footer = ({
   text = "Design Organizer",
-  version = "v1.0",
+  version = "v1.1.0",
   link = "",
 }: {
   text?: string;
@@ -45,7 +45,7 @@ export const Footer = ({
     </span>
 
     <span style={{ opacity: 0.6 }}>
-      · Made by <strong style={{ opacity: 0.9 }}>Andrés Osorio</strong>
+      · Crafted by <strong style={{ opacity: 0.9 }}>Andrés Osorio</strong>
     </span>
   </footer>
 );

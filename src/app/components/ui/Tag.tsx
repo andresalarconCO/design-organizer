@@ -1,14 +1,16 @@
 import React from "react";
 
 interface TagProps {
-  type: "Local" | "Team" | "Unlinked";
+  type: "Unlinked" | "Team" | "Local" | "Restricted";
 }
 
 export const Tag: React.FC<TagProps> = ({ type }) => {
+  // 🎨 Define a color for each tag type
   const colors: Record<TagProps["type"], string> = {
-    Local: "#4CAF50",
-    Team: "#A05EF8",
-    Unlinked: "#F44336",
+    Local: "#4CAF50",      // Green
+    Team: "#A05EF8",       // Purple
+    Unlinked: "#F44336",   // Red
+    Restricted: "#FF9800", // Orange (warning)
   };
 
   return (

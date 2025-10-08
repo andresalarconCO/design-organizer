@@ -41,34 +41,6 @@ export const GeneratorsSync = ({ onBack }: { onBack: () => void }) => {
           gap: 20,
         }}
       >
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: 6,
-          }}
-        >
-          <h1
-            style={{
-              fontSize: 17,
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            Streamline your style workflow
-          </h1>
-          <p
-            style={{
-              fontSize: 13,
-              opacity: 0.7,
-              maxWidth: 300,
-              margin: "0 auto",
-              lineHeight: 1.4,
-            }}
-          >
-            Generate, sync, and reset text and color styles — all in one place.
-          </p>
-        </div>
-
         <section
           style={{
             background: "var(--figma-color-bg-secondary)",

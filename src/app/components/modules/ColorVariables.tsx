@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "../ui/Button";
 import { Title } from "../ui/Title";
 import { Description } from "../ui/Description";
@@ -11,7 +11,9 @@ export const ColorVariables = ({
   onBack: () => void;
   data: any[];
 }) => {
-  // ✅ Agrupar colores únicos por HEX + Opacidad + Origen
+  const [scope, setScope] = useState<"selection" | "page">("selection");
+  const [isScanning, setIsScanning] = useState(false);
+
   const grouped = useMemo(() => {
     const map = new Map<string, any>();
     data.forEach((c) => {
@@ -27,9 +29,31 @@ export const ColorVariables = ({
 
   const handleFocusColor = (hex: string, opacity: number) => {
     parent.postMessage(
-      { pluginMessage: { type: "focus-color", colorHex: hex, opacity } },
+      {
+        pluginMessage: {
+          type: "focus-color",
+          colorHex: hex,
+          opacity: Number(opacity),
+          options: { scope },
+        },
+      },
       "*"
     );
+  };
+
+  const handleScan = () => {
+    setIsScanning(true);
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "scan-elements",
+          module: "colors",
+          options: { scope },
+        },
+      },
+      "*"
+    );
+    setTimeout(() => setIsScanning(false), 1500);
   };
 
   return (
@@ -38,11 +62,13 @@ export const ColorVariables = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        width: "100%",
         background: "var(--figma-color-bg)",
         color: "var(--figma-color-text)",
         fontFamily: "Inter, sans-serif",
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -59,17 +85,40 @@ export const ColorVariables = ({
         <Button variant="secondary" onClick={onBack}>
           ← Back
         </Button>
-        <Button
-          variant="primary"
-          onClick={() =>
-            parent.postMessage(
-              { pluginMessage: { type: "scan-elements", module: "colors" } },
-              "*"
-            )
-          }
-        >
-          ⟳ Refresh
-        </Button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <select
+            value={scope}
+            onChange={(e) =>
+              setScope(e.target.value as "selection" | "page")
+            }
+            style={{
+              background: "var(--figma-color-bg)",
+              border: "1px solid var(--figma-color-border)",
+              borderRadius: 6,
+              color: "var(--figma-color-text)",
+              fontSize: 12,
+              padding: "4px 8px",
+              outline: "none",
+            }}
+          >
+            <option value="selection">Selection</option>
+            <option value="page">Entire page</option>
+          </select>
+
+          <Button
+            variant="primary"
+            style={{
+              fontWeight: 600,
+              letterSpacing: "0.3px",
+              padding: "8px 14px",
+              minWidth: 100,
+            }}
+            onClick={handleScan}
+          >
+            {isScanning ? "⏳ Scanning..." : "⟳ Refresh"}
+          </Button>
+        </div>
       </div>
 
       <div
@@ -84,7 +133,7 @@ export const ColorVariables = ({
       >
         <Title>Color Variables ({grouped.length})</Title>
         <Description>
-          Review all detected colors and their link origin.
+          Review all detected solid colors and their link origin.
         </Description>
 
         {grouped.map((c, i) => (
@@ -101,9 +150,10 @@ export const ColorVariables = ({
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
-            onClick={() => handleFocusColor(c.value, c.opacity)}
+            onClick={() => handleFocusColor(c.value, Number(c.opacity))}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "var(--figma-color-bg-hover)")
+            (e.currentTarget.style.background =
+              "var(--figma-color-bg-hover)")
             }
             onMouseLeave={(e) =>
             (e.currentTarget.style.background =
@@ -123,7 +173,9 @@ export const ColorVariables = ({
             />
 
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 13 }}>{c.value.toUpperCase()}</div>
+              <div style={{ fontWeight: 600, fontSize: 13 }}>
+                {c.value.toUpperCase()}
+              </div>
               <div
                 style={{
                   fontSize: 12,
@@ -138,8 +190,8 @@ export const ColorVariables = ({
           </div>
         ))}
       </div>
-      <Footer
-      />
+
+      <Footer />
     </div>
   );
 };

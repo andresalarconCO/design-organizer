@@ -171,16 +171,6 @@ export const ExportBulkImages = ({ onBack }: { onBack: () => void }) => {
           />
         </div>
 
-        {/* Export Mode
-        <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12 }}>
-          <input
-            type="checkbox"
-            checked={exportAsZip}
-            onChange={() => setExportAsZip(!exportAsZip)}
-          />
-          Export as ZIP file
-        </label> */}
-
         {/* Exported Images List */}
         {images.length > 0 && (
           <>

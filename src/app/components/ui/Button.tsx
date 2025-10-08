@@ -1,7 +1,7 @@
 import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "success";
   width?: "auto" | "fill" | "grow";
 }
 
@@ -12,7 +12,6 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   ...rest
 }) => {
-
   const base: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
@@ -29,14 +28,14 @@ export const Button: React.FC<ButtonProps> = ({
       width === "fill"
         ? "1 1 100%"
         : width === "grow"
-          ? "1 1 auto"
-          : "0 0 auto",
+        ? "1 1 auto"
+        : "0 0 auto",
     width: width === "fill" ? "100%" : "auto",
   };
 
   const variants: Record<string, React.CSSProperties> = {
     primary: {
-      background: "#A05EF8",
+      background: "#690AE6",
       color: "#fff",
     },
     secondary: {
@@ -45,16 +44,21 @@ export const Button: React.FC<ButtonProps> = ({
       color: "var(--figma-color-text)",
     },
     danger: {
-      background: "#FF5E39",
+      background: "#A81F00",
+      color: "#fff",
+    },
+    success: {
+      background: "#156034",
       color: "#fff",
     },
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.opacity = "0.9";
+    e.currentTarget.style.filter = "brightness(1.1)";
   };
+
   const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.opacity = "1";
+    e.currentTarget.style.filter = "brightness(1)";
   };
 
   return (
